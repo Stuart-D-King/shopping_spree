@@ -10,8 +10,8 @@ Objectives:
 ### Table of Contents
 - [Background](#background)
 - [Databasing](#databasing)
-- [Imputation Strategy](#imputation strategy)
-- [Exploratory Data Analysis](#exploratory data analysis)
+- [Imputation Strategy](#imputation-strategy)
+- [Exploratory Data Analysis](#exploratory-data-analysis)
 - [Observations](#observations)
 
 ### Background

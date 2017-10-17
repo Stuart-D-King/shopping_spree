@@ -5,7 +5,7 @@ import scipy.stats as scs
 
 
 def prep_data():
-    df = pd.read_csv('Final_Output_StuartKing.csv')
+    df = pd.read_csv('final_output.csv')
     df['created_at_mst'] = pd.to_datetime(df['created_at_mst'])
     df['gender'] = df['gender'].replace(' ', np.nan)
     df = df[df['age'] < 90]
