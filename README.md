@@ -1,6 +1,6 @@
 ## Shopping Spree!
 
-### Data imputation challenge
+### Data Imputation Challenge
 Prepared by Stuart King - September 2017  
 Objectives:
 1. Load data into a SQL database
@@ -18,7 +18,7 @@ Objectives:
 We are given multiple datasets in `.csv` files that include messy item-level purchase, customer demographic, and retailer data, among other information. Using the provided data, we need to structure the data into tables within a PostgreSQL database, perform any necessary transformations, and impute missing values for receipt item prices and quantities, as well as the total price of receipts. Following all imputations and transformations, we then need to use the final output table to draw key insights related to the data.
 
 ### Databasing
-My first step is to create a **PostgreSQL** database, establish tables for the various datasets, import the data into the newly created tables, and make any necessary updates, such as variable type transformations and data cleaning. To perform these steps I ran a series of queries. Initial queries include:
+My first step is to create a PostgreSQL database, establish tables for the various datasets, import the data into the newly created tables, and make any necessary updates, such as variable type transformations and data cleaning. To perform these steps I ran a series of queries. Initial queries include:
 ```sql
 CREATE DATABASE shopping_spree;
 
@@ -157,7 +157,7 @@ CREATE TEMPORARY TABLE new_receipt_items AS
     FROM s;
 ```
 
-Similarly, to impute missing receipt total prices, I used the average total price based on the customer's shopping habits by retailer. If this imputation results in a null or zero value, I then calculate the average total price based solely on the retailer. Finally, if neither of the two above calculations yield a non-null and non-zero value, I use the global median as the imputed value. My assumption for this imputation approach is that customers will spend approximately the same amount by retailer.
+Similarly, to impute a receipt's total price, I used the average total price based on the customer's shopping habits by retailer. If this imputation results in a null or zero value, I then calculate the average total price based solely on the retailer. Finally, if neither of the two above calculations yield a non-null and non-zero value, I use the global median as the imputed value. My assumption for this imputation approach is that customers will spend approximately the same amount by retailer.
 
 ```sql
 CREATE TEMPORARY TABLE new_receipts AS
@@ -221,7 +221,7 @@ CREATE TABLE final_output AS
 To streamline the creation of the final output table, I also developed a [`sql_pipeline.py`](sql_pipeline.py) script to execute a series of SQL queries and save the final table to file.
 
 ### Exploratory Data Analysis
-Using the `final_output` table created, I then performed exploratory data analysis using SQL and Python. SQL queries and their results include the following, and Python code to create helpful visualizations is included in [`eda.py`](eda.py).
+Using the `final_output` table created, I then performed exploratory data analysis using SQL and Python. Sample SQL queries and their results include the following, and Python code to create helpful visualizations is included in [`eda.py`](eda.py).
 
 ```sql
 /* Average age by gender */
@@ -336,3 +336,10 @@ Figure 3:
 
 **Limitations and Future Analysis**  
 Some general assumptions were used to manipulate the data. These assumptions and subsequent manipulations impact the overall analysis of the data. For example, extreme outliers may in fact be vital to the dataset, and their removal compromises certain analyses. For future analysis, I would perform a more in-depth look at consumer habits by retail industry. But in general, the possibilities are endless for a dataset such as this.
+
+---
+**NOTE**
+
+Data files have been omitted to respect the privacy of the issuing company.
+
+---
