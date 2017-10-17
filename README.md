@@ -8,17 +8,41 @@ Objectives:
 3. Provide key data observations
 
 ### Table of Contents
-- Background
-- Databasing
-- Imputation Strategy
-- Exploratory Data Analysis
-- Observations
+- [Background](#background)
+- [Databasing](#databasing)
+- [Imputation Strategy](#imputation strategy)
+- [Exploratory Data Analysis](#exploratory data analysis)
+- [Observations](#observations)
 
 ### Background
-We are given multiple datasets in `.csv` files that include messy item-level purchase, customer demographic, and retailer data, among other information. Using the provided data, we need to structure the data into tables within a SQL database, perform any necessary transformations, and impute missing values for receipt item prices and quantities, as well as the total price for receipts. Following all imputations and transformations, we then need to use the final output table to draw key insights related to the data.
+We are given multiple datasets in `.csv` files that include messy item-level purchase, customer demographic, and retailer data, among other information. Using the provided data, we need to structure the data into tables within a PostgreSQL database, perform any necessary transformations, and impute missing values for receipt item prices and quantities, as well as the total price of receipts. Following all imputations and transformations, we then need to use the final output table to draw key insights related to the data.
 
 ### Databasing
-My first step is to create a **PostgreSQL** database, establish tables for the various datasets, import the data into the newly created tables, and make any necessary updates, such as variable type transformations and data cleaning.
+My first step is to create a **PostgreSQL** database, establish tables for the various datasets, import the data into the newly created tables, and make any necessary updates, such as variable type transformations and data cleaning. To perform these steps I ran a series of queries. Initial queries include:
+```sql
+CREATE DATABASE shopping_spree;
+
+CREATE TABLE receipts
+(id varchar, customer_id varchar, retailer_id
+varchar, created_at timestamp with time zone,
+total_price varchar);
+
+\copy receipts FROM 'data/receipts.csv' DELIMITER
+',' CSV HEADER
+
+UPDATE receipts
+SET total_price = NULL
+WHERE total_price = '(null)';
+
+ALTER TABLE receipts
+ALTER COLUMN total_price TYPE numeric USING
+(total_price::numeric);
+
+/* Add a new column to the receipts table to hold
+the median total price of all receipts */
+ALTER TABLE receipts
+ADD median_total_price numeric;
+```
 
 ### Imputation Strategy
 To impute price and quantity values when missing or equal to zero for receipt items, I first created a temporary table that joins the `receipt_items` and `receipt_item_details` tables, keeping the variables I will need to help impute missing values. For price, the overarching assumption for making imputations is that a good approximation of a product's missing value is the average price of similar products. To do this, I first calculate the average price of the global product ID for which the product belongs to. If that value is either null or zero, I then calculate the average price based on the product's primary and secondary category classifications. If the imputed value is still either null or zero, I then calculate the average based on the product's retailer and brand IDs. Finally, if the imputed value is still null or zero, I use the global median price as the product's imputed value. A similar process is followed for calculating missing product quantities. The assumption here is that similar products are bought in similar quantities.
@@ -194,8 +218,10 @@ CREATE TABLE final_output AS
   LEFT JOIN brands AS b
   ON nri.brand_id = b.id;
 ```
+To streamline the creation of the final output table, I also developed a [`sql_pipeline.py`](sql_pipeline.py) script to execute a series of SQL queries and save the final table to file.
+
 ### Exploratory Data Analysis
-Using the `final_output` table created, I then performed exploratory data analysis using SQL. Query samples include the following.
+Using the `final_output` table created, I then performed exploratory data analysis using SQL and Python. SQL queries and their results include the following, and Python code to create helpful visualizations is included in [`eda.py`](eda.py).
 
 ```sql
 /* Average age by gender */
@@ -291,22 +317,22 @@ WITH temp AS (
 | Electronics          |              1 |             0.00 |
 
 ### Observations
-Based on my observations, the data provides key insights related to female consumers in their mid-to-late 30s, an often-targeted demographic. Most notably, for food items consumers are purchasing produce and other common brands, and are conducting their shopping late in the day. Weekend shopping tends to be preferred, with greater variability in total number of purchases.
+The data provides key insights related to female consumers in their mid-to-late 30s, an often-targeted demographic. Most notably, for food items consumers are purchasing produce and other common brands, and are conducting their shopping late in the day. Weekend shopping tends to be preferred, with greater variability in total number of purchases.
 
 **General Descriptive Statistics**  
 Female consumers constitute 80 percent of all users, and after accounting for outliers, the average age of a consumer is 37 years old. These two features are likely helpful to a variety of retailers. Analyzing the data on a state-by-state basis, the top three states represented in the data include Texas, North Carolina, and Pennsylvania. After accounting for outliers (first removing extreme outliers by manually inspecting the data, and then by setting all values above or below three standard deviations from the mean to zero before imputing values), the three states with the greatest average spend include Maine, Arkansas, and North Dakota. Produce represents the greatest proportion of brands for which information was available, with brands such as Great Value, Food Lion, Kroger, Campbell’s, Kraft, and Yoplait representing other commonly purchased brands. These statistics dovetail from the fact that 89 percent of shopping was done at grocery stores.
 
 **Time Series Analysis**  
-The dataset covers purchases made between September and December 2016. Analyzing the trend of purchases over this time period is useful to confirm certain expectations about consumer behavior, and potentially discover new insights. A month-by-month comparison (Figure 1) suggests there is significant variability in the number of purchases on a daily basis, potentially indicative of weekday vs. weekend shopping. In addition, the peak of activity in late November likely corresponds to Black Friday shopping. When examining the histogram of purchases for weekday and weekend activity (Figure 2), we can see from the normalized frequencies that individuals are more frequently taking care of their shopping needs on the weekends. Furthermore, we can evaluate purchases on an hourly basis. Based on the hour-by-hour boxplots (Figure 3) for weekday and weekend shopping, we see that regardless of the day, people tend to do their shopping later in the day. This early vs. late shopping distinction is even more pronounced on the weekends, and late-in-the-day weekend shoppers tend to exhibit a greater variability in their shopping compared to weekday shoppers. Some applicable insights here for retailers, and grocers in particular, is that shoppers have a greater tendency to do their shopping late in the day, regardless of whether it is the weekend or during the week, and shoppers may be inclined to make more purchases on the weekend. This information could be useful for targeted marketing campaigns, or for ensuring stores are properly staffed at the right times of the day.
+The dataset covers purchases made between September and December 2016. Analyzing the trend of purchases over this time period is useful to confirm certain expectations about consumer behavior, and potentially discover new insights. A month-by-month comparison (**Figure 1**) suggests there is significant variability in the number of purchases on a daily basis, potentially indicative of weekday vs. weekend shopping. In addition, the peak of activity in late November likely corresponds to Black Friday shopping. When examining the histogram of purchases for weekday and weekend activity (**Figure 2**), we can see from the normalized frequencies that individuals are more frequently taking care of their shopping needs on the weekends. Furthermore, we can evaluate purchases on an hourly basis. Based on the hour-by-hour boxplots (**Figure 3**) for weekday and weekend shopping, we see that regardless of the day, people tend to do their shopping later in the day. This early vs. late shopping distinction is even more pronounced on the weekends, and late-in-the-day weekend shoppers tend to exhibit a greater variability in their shopping compared to weekday shoppers. Some applicable insights here for retailers, and grocers in particular, is that shoppers have a greater tendency to do their shopping late in the day, regardless of whether it is the weekend or during the week, and shoppers may be inclined to make more purchases on the weekend. This information could be useful for targeted marketing campaigns, or for ensuring stores are properly staffed at the right times of the day.
 
-**Figure 1**  
-![](img/time_series.png)
+Figure 1:  
+![](img/time_series.png "Time Series")
 
-**Figure 2**  
-![](img/wkday_wkend_daily.png)
+Figure 2:  
+![](img/wkday_wkend_daily.png "Weekday vs Weekend - Daily")
 
-**Figure 3**  
-![](img/wkday_wkend_boxplots.png)
+Figure 3:    
+![](img/wkday_wkend_boxplots.png "Weekday vs Weekend - Hourly")
 
 **Limitations and Future Analysis**  
 Some general assumptions were used to manipulate the data. These assumptions and subsequent manipulations impact the overall analysis of the data. For example, extreme outliers may in fact be vital to the dataset, and their removal compromises certain analyses. For future analysis, I would perform a more in-depth look at consumer habits by retail industry. But in general, the possibilities are endless for a dataset such as this.

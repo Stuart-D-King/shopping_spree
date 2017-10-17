@@ -12,7 +12,7 @@ CREATE DATABASE shopping_spree;
 CREATE TABLE receipts
 (id varchar, customer_id varchar, retailer_id varchar, created_at timestamp with time zone, total_price varchar);
 
-\copy receipts FROM '~/git_repos/shopping_spree/data/receipts.csv' DELIMITER ',' CSV HEADER
+\copy receipts FROM 'data/receipts.csv' DELIMITER ',' CSV HEADER
 
 UPDATE receipts
 SET total_price = NULL
@@ -29,7 +29,7 @@ ADD median_total_price numeric;
 CREATE TABLE customers
 (id varchar, gender char(1), birth_date date, education varchar, state char(2));
 
-\copy customers FROM '~/git_repos/shopping_spree/data/customers.csv' DELIMITER ',' CSV HEADER
+\copy customers FROM 'data/customers.csv' DELIMITER ',' CSV HEADER
 
 UPDATE customers
 SET education = NULL
@@ -39,13 +39,13 @@ WHERE education = 'none';
 CREATE TABLE retailers
 (id varchar, retailer_type varchar);
 
-\copy retailers FROM '~/git_repos/shopping_spree/data/retailers.csv' DELIMITER ',' CSV HEADER
+\copy retailers FROM 'data/retailers.csv' DELIMITER ',' CSV HEADER
 
 
 CREATE TABLE brands
 (id varchar, name varchar);
 
-\copy brands FROM '~/git_repos/shopping_spree/data/brands.csv' DELIMITER ',' CSV HEADER
+\copy brands FROM 'data/brands.csv' DELIMITER ',' CSV HEADER
 
 UPDATE brands
 SET name = 'No Info'
@@ -55,13 +55,13 @@ WHERE name = 'Needs Verification';
 CREATE TABLE product_categories
 (id varchar, name varchar);
 
-\copy product_categories FROM '~/git_repos/shopping_spree/data/product_categories.csv' DELIMITER ',' CSV HEADER
+\copy product_categories FROM 'data/product_categories.csv' DELIMITER ',' CSV HEADER
 
 
 CREATE TABLE receipt_item_details
 (receipt_item_id varchar, receipt_id varchar, primary_category_id varchar, secondary_category_id varchar, tertiary_category_id varchar, brand_id varchar, global_product_id varchar);
 
-\copy receipt_item_details FROM '~/git_repos/shopping_spree/data/receipt_item_details.csv' DELIMITER ',' CSV HEADER
+\copy receipt_item_details FROM 'data/receipt_item_details.csv' DELIMITER ',' CSV HEADER
 
 UPDATE receipt_item_details
 SET primary_category_id = NULL
@@ -83,7 +83,7 @@ WHERE brand_id = '(null)';
 CREATE TABLE receipt_items
 (receipt_item_id varchar, price varchar, quantity varchar);
 
-\copy receipt_items FROM '~/git_repos/shopping_spree/data/receipt_items.csv' DELIMITER ',' CSV HEADER
+\copy receipt_items FROM 'data/receipt_items.csv' DELIMITER ',' CSV HEADER
 
 UPDATE receipt_items
 SET price = NULL

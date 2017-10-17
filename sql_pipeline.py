@@ -2,12 +2,12 @@ import psycopg2
 
 '''
 Stuart King
-September 18, 2017
+September 2017
 
-A SQL pipeline for creating a final output table of the variables requested in Section II: Data Manipulation of the Ibotta Analyst Exercise. The below queries are written using PostreSQL. The pipeline assumes the database 'ibotta' and accompanying tables ('receipts', 'customers', 'retailers', 'brands', 'product_categories', 'receipt_item_details', and 'receipt_items') have been previously created, and table manipulations (e.g. removing outliers, adding new median value columns to tables, etc.) have been performed. Queries to create the database and tables are included in my SQL_Queries_StuartKing.sql file.
+A SQL pipeline for creating a final output table. The below queries are written using PostreSQL. The pipeline assumes the database and accompanying tables have been previously created, and table manipulations (e.g. removing outliers, adding new median value columns to tables, etc.) have been performed. Queries to create the database and tables are included in my create_db.sql file.
 '''
 
-conn = psycopg2.connect(dbname='ibotta', user='stuartking', host='/tmp')
+conn = psycopg2.connect(dbname='shopping_spree', user='stuartking', host='/tmp')
 c = conn.cursor()
 
 
@@ -31,7 +31,7 @@ c.execute(
 )
 
 
-# update the median quantity column in the receipt_items table
+# Update the median quantity column in the receipt_items table
 c.execute(
     '''UPDATE receipt_items SET median_qty = (
     SELECT ROUND(AVG(quantity),0)
@@ -53,7 +53,7 @@ c.execute(
 conn.commit()
 
 
-# Impute price and quantity. Please see my SQL_Queries_StuartKing.sql file for an explanation of the approach and assumptions used.
+# Impute item price and quantity
 c.execute(
     '''CREATE TEMPORARY TABLE new_receipt_items AS
     WITH s AS (
@@ -132,7 +132,7 @@ c.execute(
 conn.commit()
 
 
-# Impute total price. Please see my SQL_Queries_StuartKing.sql file for an explanation of the approach and assumptions used.
+# Impute total receipt price
 c.execute(
     '''CREATE TEMPORARY TABLE new_receipts AS
     SELECT r.*,
@@ -167,6 +167,7 @@ c.execute(
 c.execute(
     '''CREATE TABLE final_output AS
     SELECT c.id AS customer_id, c.gender, date_part('year', age(c.birth_date)) AS age, c.education, c.state, nr.retailer_id, rt.retailer_type, nr.id AS receipt_id, nr.imputed_total_price AS total_price, nr.created_at AT TIME ZONE 'MST' AS created_at_mst, nri.receipt_item_id, nri.primary_category_id, nri.secondary_category_id, nri.tertiary_category_id, b.name AS brand_name, nri.global_product_id, nri.imputed_price AS price, nri.imputed_quantity AS quantity, nri.flag_price_imputed, nri.flag_qty_imputed
+
     FROM new_receipt_items AS nri
     LEFT JOIN new_receipts AS nr
     ON nri.receipt_id = nr.id

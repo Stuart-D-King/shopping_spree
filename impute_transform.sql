@@ -82,7 +82,7 @@ UPDATE receipts SET median_total_price = (
 
 
 /* Impute total price when missing or equal to 0 */
-/* Similar to how I imputed values for price and quantity, my imputation approach for missing total price values was to use the average total price based on the customer's shopping habits by retailer. If this imputation results in a null or zero value, I then calculate the average total price based soley on the retailer. Finally, if neither of the two above calculations yield a non-null and non-zero value, I use the global median as the imputed value. My assumption for this imputation approach is that customers will spend approximately the same amount by retailer. */
+/* Similar to how I imputed values for price and quantity, my imputation approach for missing total price values was to use the average total price based on the customer's shopping habits by retailer. If this imputation results in a null or zero value, I then calculate the average total price based solely on the retailer. Finally, if neither of the two above calculations yield a non-null and non-zero value, I use the global median as the imputed value. My assumption for this imputation approach is that customers will spend approximately the same amount by retailer. */
 
 CREATE TEMPORARY TABLE new_receipts AS
   SELECT r.*,
@@ -109,6 +109,7 @@ CREATE TEMPORARY TABLE new_receipts AS
 
 CREATE TABLE final_output AS
   SELECT c.id AS customer_id, c.gender, date_part('year', age(c.birth_date)) AS age, c.education, c.state, nr.retailer_id, rt.retailer_type, nr.id AS receipt_id, nr.imputed_total_price AS total_price, nr.created_at AT TIME ZONE 'MST' AS created_at_mst, nri.receipt_item_id, nri.primary_category_id, nri.secondary_category_id, nri.tertiary_category_id, b.name AS brand_name, nri.global_product_id, nri.imputed_price AS price, nri.imputed_quantity AS quantity, nri.flag_price_imputed, nri.flag_qty_imputed
+
   FROM new_receipt_items AS nri
   LEFT JOIN new_receipts AS nr
   ON nri.receipt_id = nr.id
@@ -120,4 +121,4 @@ CREATE TABLE final_output AS
   ON nri.brand_id = b.id;
 
 
-\copy final_output TO '~/git_repos/shopping_spree/final_output.csv' DELIMITER ',' CSV HEADER
+\copy final_output TO 'final_output.csv' DELIMITER ',' CSV HEADER
