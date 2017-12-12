@@ -22,7 +22,7 @@ CREATE TEMPORARY TABLE new_receipt_items AS
     SELECT s.id AS receipt_id, s.receipt_item_id, s.global_product_id, s.retailer_id, s.brand_id, s.primary_category_id, s.secondary_category_id, s.tertiary_category_id, s.price,
 
       CASE
-      WHEN s.price <> 0 AND s.price IS NOT NULL <> 0 THEN s.price
+      WHEN s.price <> 0 AND s.price IS NOT NULL THEN s.price
 
       WHEN ((s.price = 0 OR s.price IS NULL) AND (ROUND(AVG(s.price) OVER(PARTITION BY s.global_product_id),2) IS NOT NULL AND ROUND(AVG(s.price) OVER(PARTITION BY s.global_product_id),2) <> 0)) THEN ROUND(AVG(s.price) OVER(PARTITION BY s.global_product_id),2)
 

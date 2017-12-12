@@ -1,7 +1,7 @@
 ## Shopping Spree!
 
 ### Data Imputation Challenge
-Prepared by Stuart King - September 2017  
+Prepared by **Stuart King** - September 2017  
 Objectives:
 1. Load data into a SQL database
 2. Impute missing values using only SQL
